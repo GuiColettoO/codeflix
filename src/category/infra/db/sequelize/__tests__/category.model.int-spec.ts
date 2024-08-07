@@ -1,19 +1,10 @@
-import { DataType, Sequelize } from "sequelize-typescript";
+import { DataType } from "sequelize-typescript";
+import { setupSequelize } from "../../../../../shared/infra/testing/helpers";
 import { CategoryModel } from "../category.model";
 
-describe('CategoryModel Integration Tests', () => {
 
-  let sequelize: Sequelize;
-
-  beforeAll(async () => {
-    sequelize = new Sequelize({
-      dialect: 'sqlite',
-      storage: ':memory:',
-      models: [CategoryModel],
-      logging: false,
-    });
-    await sequelize.sync({ force: true });
-  });
+describe("CategoryModel Integration Tests", () => {
+  setupSequelize({ models: [CategoryModel] });
 
   test("mapping props", () => {
     const attributesMap = CategoryModel.getAttributes();
@@ -47,7 +38,7 @@ describe('CategoryModel Integration Tests', () => {
     expect(descriptionAttr).toMatchObject({
       field: "description",
       fieldName: "description",
-      allowNull: false,
+      allowNull: true,
       type: DataType.TEXT(),
     });
 
@@ -73,7 +64,6 @@ describe('CategoryModel Integration Tests', () => {
     const arrange = {
       category_id: "9366b7dc-2d71-4799-b91c-c64adb205104",
       name: "test",
-      description: "test description",
       is_active: true,
       created_at: new Date(),
     };
@@ -83,9 +73,5 @@ describe('CategoryModel Integration Tests', () => {
 
     //assert
     expect(category.toJSON()).toStrictEqual(arrange);
-  });
-
-  afterAll(async () => {
-    await sequelize.close();
   });
 });
