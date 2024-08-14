@@ -1,9 +1,9 @@
-import { EntityValidationError } from "../../shared/domain/validators/validation.error";
-import { Uuid } from "../../shared/domain/value-objects/uuid.vo";
-import { CategoryValidatorFactory } from "./category.validator";
 import { Entity } from "../../shared/domain/entity";
 import { ValueObject } from "../../shared/domain/value-object";
+//import ValidatorRules from "../../shared/domain/validators/validator-rules";
+import { Uuid } from "../../shared/domain/value-objects/uuid.vo";
 import { CategoryFakeBuilder } from "./category-fake.builder";
+import { CategoryValidatorFactory } from "./category.validator";
 
 export type CategoryConstructorProps = {
   category_id?: Uuid;
@@ -25,8 +25,8 @@ export class Category extends Entity {
   description: string | null;
   is_active: boolean;
   created_at: Date;
-  
-  constructor(props: CategoryConstructorProps){
+
+  constructor(props: CategoryConstructorProps) {
     super();
     this.category_id = props.category_id ?? new Uuid();
     this.name = props.name;
@@ -35,22 +35,24 @@ export class Category extends Entity {
     this.created_at = props.created_at ?? new Date();
   }
 
-  //Factory method
+  get entity_id(): ValueObject {
+    return this.category_id;
+  }
+
   static create(props: CategoryCreateCommand): Category {
     const category = new Category(props);
-    Category.validate(category);
-    return category
+    //category.validate();
+    category.validate(['name']);
+    return category;
   }
 
-  changeName(name: string) {
-    // ValidatorRules.values(name, 'name').required().string().maxLength(255); um exemplo de como validar o nome com o designer pattern Fluent
+  changeName(name: string): void {
     this.name = name;
-    Category.validate(this);
+    this.validate(['name']);
   }
 
-  changeDescription(description: string) {
+  changeDescription(description: string): void {
     this.description = description;
-    Category.validate(this);
   }
 
   activate() {
@@ -59,14 +61,11 @@ export class Category extends Entity {
 
   deactivate() {
     this.is_active = false;
-  } 
+  }
 
-  static validate(entity: Category){
+  validate(fields?: string[]) {
     const validator = CategoryValidatorFactory.create();
-    const isValid = validator.validate(entity);
-    if(!isValid){
-      throw new EntityValidationError(validator.errors);
-    }
+    return validator.validate(this.notification, this, fields);
   }
 
   static fake() {
@@ -79,11 +78,7 @@ export class Category extends Entity {
       name: this.name,
       description: this.description,
       is_active: this.is_active,
-      created_at: this.created_at
-    }
-  }
-
-  get entity_id(): ValueObject {
-    return this.category_id;
+      created_at: this.created_at,
+    };
   }
 }
